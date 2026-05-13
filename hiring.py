@@ -1,8 +1,6 @@
-import base64
-from fastapi import FastAPI, Request, Response, UploadFile, File
+from fastapi import FastAPI, Request, UploadFile, File
 from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel
-from starlette.middleware.base import BaseHTTPMiddleware
 import anthropic
 import sqlite3
 import json
@@ -17,25 +15,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = FastAPI()
-
-class BasicAuthMiddleware(BaseHTTPMiddleware):
-    async def dispatch(self, request: Request, call_next):
-        if request.url.path in ("/favicon.ico",):
-            return await call_next(request)
-        auth = request.headers.get("Authorization", "")
-        if auth.startswith("Basic "):
-            try:
-                creds = base64.b64decode(auth[6:]).decode("utf-8")
-                username, password = creds.split(":", 1)
-                expected = os.getenv("APP_PASSWORD", "")
-                if username == "woden" and password == expected and expected:
-                    return await call_next(request)
-            except Exception:
-                pass
-        return Response("Unauthorized", status_code=401,
-                        headers={"WWW-Authenticate": 'Basic realm="Woden Hiring"'})
-
-app.add_middleware(BasicAuthMiddleware)
 client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 executor = ThreadPoolExecutor(max_workers=4)
 
