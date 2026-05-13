@@ -312,17 +312,17 @@ RADIUS_LOCATIONS = {
 }
 
 JOB_KEYWORDS = {
-    "Deck Builder":    ["deck builder", "deck contractor", "decking contractor", "deck construction"],
-    "Fence Installer": ["fence installer", "fence contractor", "fencing contractor", "fence company"],
-    "Landscaper":      ["landscaper", "landscaping company", "landscaping contractor", "lawn and garden"],
-    "General Labour":  ["general contractor", "construction crew", "labour contractor", "handyman"],
+    "Deck Builder":    ["deck builder", "deck contractor", "decking contractor"],
+    "Fence Installer": ["fence installer", "fence contractor", "fencing contractor"],
+    "Landscaper":      ["landscaper", "landscaping company", "landscaping contractor"],
+    "General Labour":  ["general labourer", "construction crew", "labour contractor"],
 }
 
 JOB_INDIVIDUAL = {
-    "Deck Builder":    ["deck builder", "deck carpenter", "deck craftsman"],
-    "Fence Installer": ["fence installer", "fence builder", "fencing specialist"],
-    "Landscaper":      ["landscaper", "groundskeeper", "lawn care"],
-    "General Labour":  ["handyman", "general labourer", "construction worker"],
+    "Deck Builder":    ["deck builder", "deck carpenter"],
+    "Fence Installer": ["fence installer", "fence builder"],
+    "Landscaper":      ["landscaper", "lawn care"],
+    "General Labour":  ["handyman", "general labourer"],
 }
 
 def get_locations(radius_km: int) -> list:
@@ -336,53 +336,31 @@ def run_searches(job_type: str, radius_km: int) -> list:
     keywords = JOB_KEYWORDS.get(job_type, [job_type.lower()])
     locs = get_locations(radius_km)
     city = locs[0]
-    nearby = " ".join(locs[1:3]) if len(locs) > 1 else ""
-
     ind = JOB_INDIVIDUAL.get(job_type, [keywords[0]])
+
     queries = [
-        # companies and crews
         f"{keywords[0]} {city} Alberta",
-        f"{keywords[0]} {city} Alberta hire",
         f"{keywords[1]} {city} Alberta",
-        f"{city} {keywords[0]} company",
         f"kijiji {keywords[0]} {city} Alberta",
         f"homestars {keywords[0]} {city}",
-        f"{keywords[0]} {city} contact phone",
-        f"{keywords[2]} {city} Alberta",
-        # sole proprietors and individuals offering services
         f"independent {ind[0]} {city} Alberta",
-        f"freelance {ind[0]} {city} Alberta",
-        f"self employed {ind[0]} {city}",
         f"kijiji {ind[0]} {city} for hire",
-        f"independent contractor {ind[0]} {city}",
-        # people actively seeking work (job wanted)
         f"kijiji {city} {ind[0]} looking for work",
-        f"kijiji {city} construction labour jobs wanted",
         f"{ind[0]} available for hire {city} Alberta",
-        f"{ind[1]} seeking work {city} Alberta",
-        f"skilled labourer looking for work {city} Alberta",
-        f"kijiji {city} jobs wanted construction",
-        f"carpenter available {city} Alberta",
-        f"construction worker looking for work {city}",
-        f"reddit {city} {ind[0]} looking for work",
-        f"facebook {city} trades worker available",
     ]
-    if nearby:
-        queries.append(f"{keywords[0]} {nearby} Alberta")
-        queries.append(f"{ind[0]} looking for work {nearby} Alberta")
 
     all_results, seen = [], set()
     print(f"[search] Running {len(queries)} queries for '{job_type}' near {city}")
     with DDGS() as ddgs:
         for query in queries:
             try:
-                batch = list(ddgs.text(query, max_results=10))
+                batch = list(ddgs.text(query, max_results=8))
                 print(f"  [{len(batch)} results] {query}")
                 for r in batch:
                     if r.get("href") and r["href"] not in seen:
                         seen.add(r["href"])
                         all_results.append(r)
-                time.sleep(1.0)
+                time.sleep(0.3)
             except Exception as e:
                 print(f"  [error] {query}: {e}")
     print(f"[search] Total unique results: {len(all_results)}")
@@ -466,11 +444,15 @@ Return [] only if every single result is completely unrelated to {job_type.lower
         return []
 
 def do_search(job_type: str, radius_km: int) -> dict:
-    results = run_searches(job_type, radius_km)
-    if not results:
-        return {"leads": [], "searched": 0}
-    leads = analyze_leads(results, job_type, radius_km)
-    return {"leads": leads, "searched": len(results)}
+    try:
+        results = run_searches(job_type, radius_km)
+        if not results:
+            return {"leads": [], "searched": 0}
+        leads = analyze_leads(results, job_type, radius_km)
+        return {"leads": leads, "searched": len(results)}
+    except Exception as e:
+        print(f"[do_search] fatal error: {e}")
+        return {"leads": [], "searched": 0, "error": str(e)}
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 
