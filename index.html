@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Woden Hiring Manager</title>
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #0d1117;
+  color: #c9d1d9;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* HEADER */
+header {
+  background: #161b22;
+  border-bottom: 1px solid #30363d;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.logo { display: flex; align-items: center; gap: 12px; }
+.logo-icon {
+  width: 36px; height: 36px; background: #f59e0b; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700; color: #0d1117;
+}
+.logo-text h1 { font-size: 16px; font-weight: 600; color: #f0f6fc; }
+.logo-text p { font-size: 12px; color: #8b949e; margin-top: 1px; }
+
+button { cursor: pointer; border: none; border-radius: 6px; font-size: 13px; font-weight: 500; padding: 7px 14px; transition: all 0.15s; }
+.btn-ghost { background: transparent; color: #8b949e; border: 1px solid #30363d; }
+.btn-ghost:hover { background: #21262d; color: #c9d1d9; }
+.btn-primary { background: #f59e0b; color: #0d1117; }
+.btn-primary:hover { background: #fbbf24; }
+.btn-primary:disabled { background: #30363d; color: #484f58; cursor: not-allowed; }
+
+/* LAYOUT */
+.main { display: flex; flex: 1; overflow: hidden; }
+
+/* SIDEBAR */
+.sidebar {
+  width: 272px; flex-shrink: 0;
+  background: #161b22; border-right: 1px solid #30363d;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.sidebar-header {
+  padding: 12px 16px; border-bottom: 1px solid #30363d;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.sidebar-header h2 { font-size: 11px; font-weight: 600; color: #8b949e; text-transform: uppercase; letter-spacing: 0.8px; }
+.sidebar-scroll { flex: 1; overflow-y: auto; padding: 6px 0; }
+.sidebar-scroll::-webkit-scrollbar { width: 4px; }
+.sidebar-scroll::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
+
+.sidebar-section-label {
+  padding: 14px 16px 4px;
+  font-size: 10px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.8px; color: #484f58;
+  display: flex; align-items: center; gap: 8px;
+}
+.sidebar-section-label::after {
+  content: ''; flex: 1; height: 1px; background: #21262d;
+}
+
+.status-group { margin-bottom: 2px; }
+.status-label {
+  padding: 5px 16px;
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #8b949e;
+}
+.status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.status-count { margin-left: auto; background: #21262d; color: #8b949e; border-radius: 10px; padding: 1px 7px; font-size: 10px; }
+
+.dot-applied { background: #3b82f6; }
+.dot-screened { background: #eab308; }
+.dot-interview-scheduled { background: #f97316; }
+.dot-interviewed { background: #a855f7; }
+.dot-hired { background: #22c55e; }
+.dot-rejected { background: #6b7280; }
+.dot-sub { background: #f59e0b; }
+
+.card {
+  margin: 2px 8px; background: #21262d; border: 1px solid #30363d;
+  border-radius: 8px; padding: 9px 11px; cursor: pointer; transition: all 0.15s;
+}
+.card:hover { background: #262c36; border-color: #444c56; }
+.card.expanded { border-color: #f59e0b55; }
+.card-top { display: flex; align-items: flex-start; gap: 8px; }
+.card-name { font-size: 13px; font-weight: 500; color: #f0f6fc; flex: 1; line-height: 1.3; }
+.card-sub { font-size: 11px; color: #8b949e; margin-top: 2px; }
+.score-badge { font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
+.score-high { background: #166534; color: #4ade80; }
+.score-mid  { background: #854d0e; color: #fbbf24; }
+.score-low  { background: #7f1d1d; color: #f87171; }
+.card-detail { display: none; margin-top: 8px; padding-top: 8px; border-top: 1px solid #30363d; font-size: 12px; color: #8b949e; line-height: 1.5; }
+.card-detail.visible { display: block; }
+.card-detail strong { color: #c9d1d9; display: block; margin-bottom: 2px; }
+.card-actions { display: flex; gap: 5px; margin-top: 8px; flex-wrap: wrap; }
+.card-actions button { font-size: 11px; padding: 3px 8px; background: #0d1117; color: #8b949e; border: 1px solid #30363d; }
+.card-actions button:hover { background: #21262d; color: #c9d1d9; }
+.empty-state { padding: 10px 16px; font-size: 12px; color: #484f58; font-style: italic; }
+
+/* CONTENT AREA */
+.content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+/* TABS */
+.tabs {
+  display: flex; gap: 0; border-bottom: 1px solid #30363d;
+  background: #161b22; flex-shrink: 0; padding: 0 20px;
+}
+.tab {
+  padding: 12px 18px; font-size: 13px; font-weight: 500;
+  color: #8b949e; border: none; background: transparent; border-bottom: 2px solid transparent;
+  cursor: pointer; transition: all 0.15s; margin-bottom: -1px;
+}
+.tab:hover { color: #c9d1d9; }
+.tab.active { color: #f59e0b; border-bottom-color: #f59e0b; }
+
+/* CHAT TAB */
+.tab-panel { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+.tab-panel.active { display: flex; }
+
+.messages { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 18px; }
+.messages::-webkit-scrollbar { width: 5px; }
+.messages::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
+
+.message { display: flex; gap: 12px; max-width: 820px; animation: fadeIn 0.2s ease; }
+.message.user { flex-direction: row-reverse; margin-left: auto; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; } }
+
+.avatar { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+.avatar-ai { background: #f59e0b; color: #0d1117; }
+.avatar-user { background: #1f6feb; color: #fff; }
+
+.bubble { padding: 11px 15px; border-radius: 12px; font-size: 14px; line-height: 1.6; max-width: 100%; }
+.bubble-ai { background: #161b22; border: 1px solid #30363d; border-radius: 12px 12px 12px 4px; color: #c9d1d9; }
+.bubble-user { background: #1f6feb; color: #fff; border-radius: 12px 12px 4px 12px; }
+.bubble-ai p { margin-bottom: 8px; } .bubble-ai p:last-child { margin-bottom: 0; }
+.bubble-ai strong { color: #f0f6fc; }
+.bubble-ai ul, .bubble-ai ol { padding-left: 20px; margin-bottom: 8px; }
+.bubble-ai li { margin-bottom: 3px; }
+.bubble-ai h1,.bubble-ai h2,.bubble-ai h3 { color: #f0f6fc; margin: 12px 0 5px; font-size: 14px; }
+.bubble-ai code { background: #0d1117; border: 1px solid #30363d; padding: 1px 4px; border-radius: 3px; font-size: 12px; }
+.bubble-ai pre { background: #0d1117; border: 1px solid #30363d; padding: 10px; border-radius: 6px; margin-bottom: 8px; overflow-x: auto; }
+.bubble-ai pre code { background: none; border: none; padding: 0; }
+.bubble-ai hr { border: none; border-top: 1px solid #30363d; margin: 10px 0; }
+
+.thinking { display: flex; gap: 4px; padding: 6px 2px; align-items: center; }
+.dot { width: 6px; height: 6px; background: #8b949e; border-radius: 50%; animation: bounce 1.2s infinite; }
+.dot:nth-child(2) { animation-delay: 0.2s; }
+.dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce { 0%,80%,100% { transform: translateY(0); opacity:.5; } 40% { transform: translateY(-6px); opacity:1; } }
+
+.welcome { text-align: center; margin: auto; padding: 40px 20px; }
+.welcome h2 { font-size: 20px; color: #f0f6fc; margin-bottom: 8px; }
+.welcome p { font-size: 14px; color: #8b949e; margin-bottom: 22px; max-width: 420px; line-height: 1.6; }
+.suggestions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 540px; }
+.suggestion { background: #161b22; border: 1px solid #30363d; color: #8b949e; border-radius: 20px; padding: 7px 15px; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+.suggestion:hover { background: #21262d; color: #c9d1d9; border-color: #f59e0b; }
+
+.input-area { border-top: 1px solid #30363d; padding: 14px 20px; background: #0d1117; }
+.input-row { display: flex; gap: 10px; align-items: flex-end; background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 9px 13px; transition: border-color 0.15s; }
+.input-row:focus-within { border-color: #f59e0b55; }
+textarea { flex: 1; background: transparent; border: none; color: #c9d1d9; font-size: 14px; font-family: inherit; resize: none; outline: none; max-height: 150px; line-height: 1.5; }
+textarea::placeholder { color: #484f58; }
+.send-btn { background: #f59e0b; color: #0d1117; padding: 7px 15px; border-radius: 6px; font-size: 13px; font-weight: 600; flex-shrink: 0; align-self: flex-end; }
+.send-btn:hover { background: #fbbf24; }
+.send-btn:disabled { background: #30363d; color: #484f58; cursor: not-allowed; }
+.input-hint { font-size: 11px; color: #484f58; margin-top: 7px; text-align: center; }
+
+/* FIND CREWS TAB */
+.search-area { padding: 20px 24px; border-bottom: 1px solid #30363d; flex-shrink: 0; }
+.search-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.search-controls select {
+  background: #21262d; border: 1px solid #30363d; color: #c9d1d9;
+  padding: 8px 12px; border-radius: 6px; font-size: 13px; font-family: inherit;
+  cursor: pointer; outline: none;
+}
+.search-controls select:focus { border-color: #f59e0b55; }
+.search-status { font-size: 12px; color: #8b949e; margin-top: 10px; min-height: 18px; }
+.search-status.running { color: #f59e0b; }
+
+.results-area { flex: 1; overflow-y: auto; padding: 16px 24px; }
+.results-area::-webkit-scrollbar { width: 5px; }
+.results-area::-webkit-scrollbar-thumb { background: #30363d; border-radius: 2px; }
+
+.results-header { font-size: 12px; color: #8b949e; margin-bottom: 14px; }
+
+.lead-card {
+  background: #161b22; border: 1px solid #30363d; border-radius: 10px;
+  padding: 14px 16px; margin-bottom: 10px; transition: border-color 0.15s;
+}
+.lead-card:hover { border-color: #444c56; }
+.lead-card.saved { border-color: #f59e0b44; opacity: 0.7; }
+
+.lead-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
+.lead-name { font-size: 15px; font-weight: 600; color: #f0f6fc; }
+.source-badge { font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 10px; flex-shrink: 0; }
+.source-kijiji   { background: #1a3347; color: #60a5fa; }
+.source-homestars{ background: #2d1b45; color: #c084fc; }
+.source-facebook { background: #1a2f47; color: #60a5fa; }
+.source-web      { background: #1a2d1a; color: #4ade80; }
+.source-indeed   { background: #3d2b0d; color: #fbbf24; }
+
+.lead-specialty { font-size: 12px; color: #8b949e; margin-bottom: 8px; }
+
+.lead-contacts { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 8px; }
+.lead-contact { font-size: 12px; color: #8b949e; display: flex; align-items: center; gap: 4px; }
+.lead-contact a { color: #60a5fa; text-decoration: none; }
+.lead-contact a:hover { text-decoration: underline; }
+
+.lead-notes { font-size: 12px; color: #8b949e; line-height: 1.5; margin-bottom: 10px; }
+
+.lead-actions { display: flex; gap: 8px; }
+.btn-save { background: #f59e0b; color: #0d1117; font-size: 12px; padding: 5px 12px; border-radius: 5px; font-weight: 600; }
+.btn-save:hover { background: #fbbf24; }
+.btn-save:disabled { background: #30363d; color: #484f58; cursor: default; }
+.btn-open { background: transparent; border: 1px solid #30363d; color: #8b949e; font-size: 12px; padding: 5px 12px; border-radius: 5px; }
+.btn-open:hover { background: #21262d; color: #c9d1d9; }
+
+.empty-results { text-align: center; padding: 60px 20px; color: #484f58; }
+.empty-results h3 { font-size: 16px; margin-bottom: 8px; color: #8b949e; }
+.empty-results p { font-size: 13px; line-height: 1.6; }
+
+/* DROP OVERLAY */
+.drop-overlay {
+  display: none; position: fixed; inset: 0; background: rgba(13,17,23,0.88);
+  z-index: 100; align-items: center; justify-content: center;
+  flex-direction: column; gap: 12px; border: 3px dashed #f59e0b; pointer-events: none;
+}
+.drop-overlay.active { display: flex; }
+.drop-overlay-icon { font-size: 48px; }
+.drop-overlay-text { font-size: 20px; font-weight: 600; color: #f59e0b; }
+.drop-overlay-sub { font-size: 13px; color: #8b949e; }
+</style>
+</head>
+<body>
+
+<div class="drop-overlay" id="dropOverlay">
+  <div class="drop-overlay-icon">📄</div>
+  <div class="drop-overlay-text">Drop resume to screen</div>
+  <div class="drop-overlay-sub">PDF, DOCX, or TXT</div>
+</div>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">W</div>
+    <div class="logo-text">
+      <h1>Woden Hiring Manager</h1>
+      <p>Woden Contracting · Calgary, AB</p>
+    </div>
+  </div>
+  <button class="btn-ghost" onclick="newChat()">New Chat</button>
+</header>
+
+<div class="main">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>Pipeline</h2>
+      <button class="btn-ghost" style="padding:3px 9px;font-size:11px;" onclick="loadAll()">↺</button>
+    </div>
+    <div class="sidebar-scroll">
+      <div id="pipeline"><div class="empty-state">No candidates yet.</div></div>
+
+      <div class="sidebar-section-label">Saved Subs</div>
+      <div id="savedSubs"><div class="empty-state">None saved yet.</div></div>
+    </div>
+  </aside>
+
+  <!-- CONTENT -->
+  <div class="content">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('chat', this)">Chat</button>
+      <button class="tab" onclick="switchTab('crews', this)">Find Crews</button>
+    </div>
+
+    <!-- CHAT PANEL -->
+    <div class="tab-panel active" id="panel-chat">
+      <div class="messages" id="messages">
+        <div class="welcome" id="welcome">
+          <h2>Ready to hire</h2>
+          <p>Paste a resume, request a job posting, or pull up your pipeline.</p>
+          <div class="suggestions">
+            <button class="suggestion" onclick="suggest('Draft a job posting for a Deck Builder on Indeed')">Draft Indeed posting — Deck Builder</button>
+            <button class="suggestion" onclick="suggest('Draft a job posting for a Fence Installer on Indeed')">Draft Indeed posting — Fence Installer</button>
+            <button class="suggestion" onclick="suggest('Show me the current pipeline')">Show pipeline</button>
+            <button class="suggestion" onclick="suggest('Generate interview questions for a Landscaper')">Interview questions — Landscaper</button>
+          </div>
+        </div>
+      </div>
+      <div class="input-area">
+        <div class="input-row">
+          <textarea id="input" placeholder="Paste a resume, ask for a job posting, or type a question..." rows="1"
+            onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <button class="send-btn" id="sendBtn" onclick="send()">Send</button>
+        </div>
+        <div class="input-hint">Shift+Enter for new line · Enter to send · Drag &amp; drop a resume PDF anywhere</div>
+      </div>
+    </div>
+
+    <!-- FIND CREWS PANEL -->
+    <div class="tab-panel" id="panel-crews">
+      <div class="search-area">
+        <div class="search-controls">
+          <select id="jobType">
+            <option value="Deck Builder">Deck Builder</option>
+            <option value="Fence Installer">Fence Installer</option>
+            <option value="Landscaper">Landscaper</option>
+            <option value="General Labour">General Labour</option>
+          </select>
+          <select id="radius">
+            <option value="25">Within 25 km of Calgary</option>
+            <option value="50" selected>Within 50 km of Calgary</option>
+            <option value="100">Within 100 km of Calgary</option>
+            <option value="999">Province-wide (Alberta)</option>
+          </select>
+          <button class="btn-primary" id="searchBtn" onclick="runSearch()">Search Now</button>
+        </div>
+        <div class="search-status" id="searchStatus">Search across Google, Kijiji, HomeStars, Facebook, and more.</div>
+      </div>
+      <div class="results-area" id="resultsArea">
+        <div class="empty-results">
+          <h3>No search run yet</h3>
+          <p>Pick a job type and radius, then hit Search Now.<br>The agent will scan multiple sources and return ranked leads.</p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+// ── Sidebar data ──────────────────────────────────────────────────────────────
+const STATUSES = [
+  { key:'Applied',            dot:'dot-applied' },
+  { key:'Screened',           dot:'dot-screened' },
+  { key:'Interview Scheduled',dot:'dot-interview-scheduled' },
+  { key:'Interviewed',        dot:'dot-interviewed' },
+  { key:'Hired',              dot:'dot-hired' },
+  { key:'Rejected',           dot:'dot-rejected' },
+];
+const ADVANCE = { 'Applied':'Screened','Screened':'Interview Scheduled','Interview Scheduled':'Interviewed','Interviewed':'Hired' };
+
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function scoreClass(n){ return n>=7?'score-high':n>=5?'score-mid':'score-low'; }
+function sourceClass(s){
+  const m = (s||'').toLowerCase();
+  if(m.includes('kijiji'))    return 'source-kijiji';
+  if(m.includes('homestars')) return 'source-homestars';
+  if(m.includes('facebook'))  return 'source-facebook';
+  if(m.includes('indeed'))    return 'source-indeed';
+  return 'source-web';
+}
+
+async function loadAll(){ await Promise.all([loadPipeline(), loadSubs()]); }
+
+async function loadPipeline(){
+  const res = await fetch('/candidates');
+  const data = await res.json();
+  renderPipeline(data);
+}
+
+function renderPipeline(candidates){
+  const el = document.getElementById('pipeline');
+  if(!candidates.length){ el.innerHTML='<div class="empty-state">No candidates yet.</div>'; return; }
+  const grouped={};
+  STATUSES.forEach(s=>grouped[s.key]=[]);
+  candidates.forEach(c=>{ if(grouped[c.status]!==undefined) grouped[c.status].push(c); });
+  el.innerHTML = STATUSES.map(s=>{
+    const list=grouped[s.key];
+    if(!list.length) return '';
+    return `<div class="status-group">
+      <div class="status-label"><span class="status-dot ${s.dot}"></span>${s.key}<span class="status-count">${list.length}</span></div>
+      ${list.map(c=>candidateCardHTML(c)).join('')}
+    </div>`;
+  }).join('');
+}
+
+function candidateCardHTML(c){
+  const next=ADVANCE[c.status];
+  const adv = next?`<button onclick="advanceCandidate(${c.id},'${next}',event)">→ ${esc(next)}</button>`:'';
+  const rej = c.status!=='Rejected'&&c.status!=='Hired'?`<button onclick="advanceCandidate(${c.id},'Rejected',event)">Reject</button>`:'';
+  return `<div class="card" id="card-${c.id}" onclick="toggleCard('card-${c.id}','detail-${c.id}')">
+    <div class="card-top">
+      <div><div class="card-name">${esc(c.name)}</div><div class="card-sub">${esc(c.role||'')}</div></div>
+      <span class="score-badge ${scoreClass(c.score)}">${c.score}/10</span>
+    </div>
+    <div class="card-detail" id="detail-${c.id}">
+      ${c.score_reasoning?`<strong>Assessment</strong>${esc(c.score_reasoning)}`:''}
+      ${c.notes?`<strong style="margin-top:7px;">Notes</strong>${esc(c.notes)}`:''}
+      ${c.phone?`<strong style="margin-top:7px;">Phone</strong>${esc(c.phone)}`:''}
+      ${c.email?`<strong style="margin-top:7px;">Email</strong>${esc(c.email)}`:''}
+      <div class="card-actions">${adv}${rej}</div>
+    </div>
+  </div>`;
+}
+
+async function advanceCandidate(id, status, e){
+  e.stopPropagation();
+  await fetch(`/candidates/${id}?status=${encodeURIComponent(status)}`,{method:'PATCH'});
+  await loadPipeline();
+}
+
+function toggleCard(cardId, detailId){
+  const d=document.getElementById(detailId);
+  const c=document.getElementById(cardId);
+  const vis=d.classList.contains('visible');
+  d.classList.toggle('visible',!vis);
+  c.classList.toggle('expanded',!vis);
+}
+
+// Subs sidebar
+async function loadSubs(){
+  const res = await fetch('/subcontractors');
+  const data = await res.json();
+  renderSubs(data);
+}
+
+function renderSubs(subs){
+  const el = document.getElementById('savedSubs');
+  if(!subs.length){ el.innerHTML='<div class="empty-state">None saved yet.</div>'; return; }
+  el.innerHTML = subs.map(s=>`
+    <div class="card" id="sub-card-${s.id}" onclick="toggleCard('sub-card-${s.id}','sub-detail-${s.id}')">
+      <div class="card-top">
+        <div><div class="card-name">${esc(s.name)}</div><div class="card-sub">${esc(s.specialty||'')} · ${esc(s.location||'')}</div></div>
+        <span class="status-dot dot-sub" style="margin-top:4px;"></span>
+      </div>
+      <div class="card-detail" id="sub-detail-${s.id}">
+        ${s.notes?`<strong>Notes</strong>${esc(s.notes)}`:''}
+        ${s.phone?`<strong style="margin-top:6px;">Phone</strong>${esc(s.phone)}`:''}
+        ${s.website?`<strong style="margin-top:6px;">Website</strong><a href="${esc(s.website)}" target="_blank" style="color:#60a5fa;font-size:11px;">Open ↗</a>`:''}
+        ${s.source?`<strong style="margin-top:6px;">Source</strong>${esc(s.source)}`:''}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────────
+function switchTab(name, btn){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+}
+
+// ── Chat ──────────────────────────────────────────────────────────────────────
+let loading = false;
+
+function autoResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,150)+'px'; }
+function handleKey(e){ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); send(); } }
+function suggest(text){ document.getElementById('input').value=text; autoResize(document.getElementById('input')); send(); }
+
+function appendMessage(role, html){
+  document.getElementById('welcome')?.remove();
+  const msgs=document.getElementById('messages');
+  const div=document.createElement('div');
+  div.className=`message ${role}`;
+  const ic=role==='ai'?'W':'O';
+  const ac=role==='ai'?'avatar-ai':'avatar-user';
+  const bc=role==='ai'?'bubble-ai':'bubble-user';
+  div.innerHTML=`<div class="avatar ${ac}">${ic}</div><div class="bubble ${bc}">${html}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+function showThinking(){
+  document.getElementById('welcome')?.remove();
+  const msgs=document.getElementById('messages');
+  const div=document.createElement('div'); div.className='message ai'; div.id='thinking';
+  div.innerHTML=`<div class="avatar avatar-ai">W</div><div class="bubble bubble-ai"><div class="thinking"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`;
+  msgs.appendChild(div); msgs.scrollTop=msgs.scrollHeight;
+}
+function removeThinking(){ document.getElementById('thinking')?.remove(); }
+
+async function send(){
+  if(loading) return;
+  const input=document.getElementById('input');
+  const text=input.value.trim(); if(!text) return;
+  input.value=''; input.style.height='auto';
+  loading=true; document.getElementById('sendBtn').disabled=true;
+  appendMessage('user', esc(text).replace(/\n/g,'<br>'));
+  showThinking();
+  try{
+    const res=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})});
+    const data=await res.json();
+    removeThinking();
+    appendMessage('ai', marked.parse(data.response||'(no response)'));
+    if(data.pipeline_changed) await loadPipeline();
+  } catch(e){
+    removeThinking();
+    appendMessage('ai','<em>Error connecting to server.</em>');
+  }
+  loading=false; document.getElementById('sendBtn').disabled=false;
+  document.getElementById('input').focus();
+}
+
+async function newChat(){
+  await fetch('/reset',{method:'POST'});
+  document.getElementById('messages').innerHTML=`<div class="welcome" id="welcome">
+    <h2>Ready to hire</h2>
+    <p>Paste a resume, request a job posting, or pull up your pipeline.</p>
+    <div class="suggestions">
+      <button class="suggestion" onclick="suggest('Draft a job posting for a Deck Builder on Indeed')">Draft Indeed posting — Deck Builder</button>
+      <button class="suggestion" onclick="suggest('Draft a job posting for a Fence Installer on Indeed')">Draft Indeed posting — Fence Installer</button>
+      <button class="suggestion" onclick="suggest('Show me the current pipeline')">Show pipeline</button>
+      <button class="suggestion" onclick="suggest('Generate interview questions for a Landscaper')">Interview questions — Landscaper</button>
+    </div>
+  </div>`;
+}
+
+// ── Find Crews ────────────────────────────────────────────────────────────────
+let savedSubIds = new Set();
+
+async function runSearch(){
+  const btn=document.getElementById('searchBtn');
+  const status=document.getElementById('searchStatus');
+  const jobType=document.getElementById('jobType').value;
+  const radius=parseInt(document.getElementById('radius').value);
+
+  btn.disabled=true;
+  status.className='search-status running';
+
+  const messages=[
+    'Searching Google and web directories...',
+    'Scanning Kijiji listings...',
+    'Checking HomeStars...',
+    'Looking through Facebook and Indeed...',
+    'Claude is analyzing results...',
+  ];
+  let mi=0;
+  status.textContent=messages[mi];
+  const interval=setInterval(()=>{ mi=(mi+1)%messages.length; status.textContent=messages[mi]; },4000);
+
+  try{
+    const res=await fetch('/search-crews',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({job_type:jobType, radius_km:radius})
+    });
+    const data=await res.json();
+    clearInterval(interval);
+    renderLeads(data.leads||[], jobType, data.searched||0);
+    status.className='search-status';
+    status.textContent=`Found ${(data.leads||[]).length} leads from ${data.searched||0} web results.`;
+  } catch(e){
+    clearInterval(interval);
+    status.className='search-status';
+    status.textContent='Search failed — check the server is running.';
+    document.getElementById('resultsArea').innerHTML='<div class="empty-results"><h3>Search error</h3><p>Make sure the server is running and try again.</p></div>';
+  }
+  btn.disabled=false;
+}
+
+function renderLeads(leads, jobType, searched){
+  const el=document.getElementById('resultsArea');
+  if(!leads.length){
+    el.innerHTML=`<div class="empty-results"><h3>No leads found</h3><p>Try a different job type or wider radius.<br>Searched ${searched} web results.</p></div>`;
+    return;
+  }
+  el.innerHTML=`<div class="results-header">${leads.length} leads found for <strong>${esc(jobType)}</strong> — click Save to add any to your subcontractors list.</div>`
+    + leads.map((l,i)=>leadCardHTML(l,i)).join('');
+}
+
+function leadCardHTML(lead, i){
+  const sc=sourceClass(lead.source);
+  const typeRaw=(lead.type||'').toLowerCase();
+  const typeBadge= typeRaw.includes('seeking')
+    ? `<span class="source-badge" style="background:#2d1f45;color:#c084fc;">Seeking Work</span>`
+    : typeRaw.includes('individual')
+    ? `<span class="source-badge" style="background:#1a3d2b;color:#4ade80;">Individual</span>`
+    : `<span class="source-badge" style="background:#1a2d3d;color:#60a5fa;">Company</span>`;
+  const phone=lead.phone?`<span class="lead-contact">📞 ${esc(lead.phone)}</span>`:'';
+  const email=lead.email?`<span class="lead-contact">✉️ <a href="mailto:${esc(lead.email)}">${esc(lead.email)}</a></span>`:'';
+  const web=lead.website?`<span class="lead-contact">🌐 <a href="${esc(lead.website)}" target="_blank">${esc((lead.website||'').replace(/^https?:\/\//,'').split('/')[0])}</a></span>`:'';
+  return `<div class="lead-card" id="lead-${i}">
+    <div class="lead-top">
+      <div class="lead-name">${esc(lead.name)}</div>
+      <div style="display:flex;gap:5px;flex-shrink:0;">${typeBadge}<span class="source-badge ${sc}">${esc(lead.source||'Web')}</span></div>
+    </div>
+    <div class="lead-specialty">${esc(lead.specialty||'')} · ${esc(lead.location||'')}</div>
+    ${(phone||email||web)?`<div class="lead-contacts">${phone}${email}${web}</div>`:''}
+    ${lead.notes?`<div class="lead-notes">${esc(lead.notes)}</div>`:''}
+    <div class="lead-actions">
+      <button class="btn-save" id="save-${i}" onclick="saveLead(${i},${JSON.stringify(lead).replace(/"/g,'&quot;')})">Save</button>
+      ${lead.website?`<button class="btn-open" onclick="window.open('${esc(lead.website)}','_blank')">Open ↗</button>`:''}
+    </div>
+  </div>`;
+}
+
+async function saveLead(i, lead){
+  const btn=document.getElementById('save-'+i);
+  btn.disabled=true; btn.textContent='Saving...';
+  await fetch('/subcontractors',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      name:lead.name||'', specialty:lead.specialty||'', location:lead.location||'',
+      phone:lead.phone||'', email:lead.email||'', website:lead.website||'',
+      source:lead.source||'Web', notes:lead.notes||''
+    })
+  });
+  btn.textContent='Saved ✓';
+  document.getElementById('lead-'+i).classList.add('saved');
+  await loadSubs();
+}
+
+// ── Drag-and-drop resume upload ───────────────────────────────────────────────
+let dragCounter=0;
+document.addEventListener('dragenter',e=>{ e.preventDefault(); dragCounter++; document.getElementById('dropOverlay').classList.add('active'); });
+document.addEventListener('dragleave',()=>{ dragCounter--; if(dragCounter<=0){ dragCounter=0; document.getElementById('dropOverlay').classList.remove('active'); } });
+document.addEventListener('dragover',e=>e.preventDefault());
+document.addEventListener('drop',async e=>{
+  e.preventDefault(); dragCounter=0; document.getElementById('dropOverlay').classList.remove('active');
+  const file=e.dataTransfer.files[0]; if(!file) return;
+  const ext='.'+file.name.split('.').pop().toLowerCase();
+  if(!['.pdf','.docx','.txt'].includes(ext)){ appendMessage('ai','<em>Unsupported file type. Drop a PDF, DOCX, or TXT resume.</em>'); return; }
+  // Switch to chat tab if not already there
+  document.querySelectorAll('.tab').forEach((t,i)=>{ if(i===0) t.classList.add('active'); else t.classList.remove('active'); });
+  document.querySelectorAll('.tab-panel').forEach((p,i)=>{ if(i===0) p.classList.add('active'); else p.classList.remove('active'); });
+  appendMessage('user',`📄 ${esc(file.name)}`);
+  showThinking(); loading=true; document.getElementById('sendBtn').disabled=true;
+  try{
+    const form=new FormData(); form.append('file',file);
+    const res=await fetch('/upload',{method:'POST',body:form});
+    const data=await res.json();
+    removeThinking();
+    appendMessage('ai',marked.parse(data.response||'(no response)'));
+    if(data.pipeline_changed) await loadPipeline();
+  } catch(err){ removeThinking(); appendMessage('ai','<em>Error uploading file.</em>'); }
+  loading=false; document.getElementById('sendBtn').disabled=false;
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadAll();
+document.getElementById('input').focus();
+</script>
+</body>
+</html>

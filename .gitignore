@@ -1,0 +1,7 @@
+.env
+__pycache__/
+*.pyc
+*.db
+*.ico
+make_icon.py
+test_search.py
