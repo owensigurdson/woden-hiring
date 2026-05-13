@@ -40,7 +40,7 @@ client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 executor = ThreadPoolExecutor(max_workers=4)
 
 DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(DIR, "hiring.db")
+DB_PATH = os.path.join(os.getenv("DATA_DIR", DIR), "hiring.db")
 
 # ── Database ──────────────────────────────────────────────────────────────────
 
